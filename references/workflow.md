@@ -134,9 +134,11 @@ Each stage has five fields:
 
 **Enter when:** pilot prompts are confirmed.
 
-**Skill acts:** route to manual or API mode. In manual ChatGPT mode, default to one prompt and one image per fresh conversation, issue manageable batches, and map each result to its shot ID. In API mode, explain estimated count/cost, verify authorization, run a small batch, then continue. Do not invoke video-generation models for this slideshow assembly stage.
+**Skill acts:** route to manual or assistant-generated mode. In manual ChatGPT mode, default to one prompt and one image per fresh conversation, issue manageable batches, and map each result to its shot ID. In assistant-generated mode, explain the estimated count and any material cost, verify authorization, run the confirmed pilot, then generate with the available image tool. Do not invoke video-generation models for this slideshow assembly stage.
 
-**Ask now:** ask the user to choose manual versus API only after showing the tradeoff. For logged-in browser work, confirm the correct account and allowed read/write boundary.
+For confirmed `city-archives-v1` projects, pilot approval plus authorization for autonomous production covers the planned image count and at most one critical-error retry per image. Use `scripts/image_batch_plan.py STORYBOARD.csv --size 10` to produce deterministic batches. Generate one image per call with the complete prompt, save by shot ID rather than response order, review each batch, write `review/IMAGE_BATCH_NN_QC.md`, update `images/GENERATION_LEDGER.md`, and continue to the next batch without a user pause. Move failed originals to `images/revisions/`. After one retry, record any remaining critical issue for final human judgment rather than retrying indefinitely.
+
+**Ask now:** ask the user to choose manual versus assistant-generated mode only when no production profile has already fixed that decision. For logged-in browser work, confirm the correct account and allowed read/write boundary.
 
 **Deliver:** numbered generated images and generation ledger with failures or retries.
 
@@ -146,9 +148,9 @@ Each stage has five fields:
 
 **Enter when:** the image batch is complete enough to inspect.
 
-**Skill acts:** check counts, IDs, dimensions, corrupt files, style drift, repeated composition, identity drift, era violations, embedded borders, and text baked into images. Generate a replacement list rather than silently accepting weak assets.
+**Skill acts:** check counts, IDs, dimensions, corrupt files, narration fit, style drift, repeated composition, identity drift, geographic and era violations, subtitle-safe composition, embedded borders, and text baked into images. Generate a replacement list rather than silently accepting weak assets. Batch QC does not replace this final whole-set check.
 
-**Ask now:** show only the replacement candidates and reasons; ask the user to approve replacements or accept specific exceptions.
+**Ask now:** for autonomous `city-archives-v1` production, wait until all batches and the whole-set check are complete, then show only unresolved replacement candidates and reasons. Ask the user to approve replacements or accept specific exceptions.
 
 **Deliver:** frozen image manifest and `review/image-qc.md`.
 

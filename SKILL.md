@@ -1,6 +1,6 @@
 ---
 name: image-story-video-wizard
-description: Use when a user wants step-by-step help making an audio-first image-story, AI narration, slideshow, illustrated story, AI 讲书, 图片联播, 有声故事, or 静态图叙事视频 with Codex or WorkBuddy; not for a standalone script, single image, or ordinary video editing.
+description: Use when a user wants step-by-step help making an audio-first image-story, AI narration, slideshow, illustrated story, AI 讲书, 图片联播, 有声故事, 静态图叙事视频, or 城事档案-style regional historical-figure episode with Codex or WorkBuddy; not for a standalone script, single image, or ordinary video editing.
 ---
 
 # Image Story Video Wizard
@@ -28,6 +28,10 @@ On first use, detect whether this is a new project or a resumed one. Look for `P
 At stage 0, identify the actual host and capabilities. Read [references/host-routing.md](references/host-routing.md) when choosing between Codex, WorkBuddy, or a handoff. Never claim a host can access local files, call a model, use a logged-in browser, synthesize audio, or render unless that capability is available now.
 
 Read [references/workflow.md](references/workflow.md) before starting a project and whenever entering a new stage. Read [references/state-schema.md](references/state-schema.md) before creating or changing project state.
+
+## Production profiles
+
+When the user says `城事档案`, asks to make a regional historical figure episode, or frames a topic as how one person shaped a city, read [references/city-archives-profile.md](references/city-archives-profile.md). Apply `city-archives-v1` only to that series; keep the generic workflow for other image-story projects. Persist the selected profile and its confirmed defaults in `PROJECT_STATE.json` so another host can resume without reconstructing the conversation.
 
 ## Stage order and hard gates
 
@@ -67,6 +71,7 @@ If a gate fails, mark `需要返工`, return only to the earliest affected stage
 - Lock image style and text treatment with a three-to-five-image pilot before producing the full prompt manifest.
 - Detect recurring characters. When identity continuity matters, confirm face and full-body anchors before batch generation.
 - In manual mode, guide a pilot first, then batches. Do not dump dozens of prompts in the first image turn.
+- In a confirmed `city-archives-v1` project with image generation available, generate the approved production set yourself in batches of ten and review each batch before continuing. Follow the profile's retry and ledger rules; do not pause between batches unless authorization, capability, or a critical unresolved failure blocks progress.
 - Keep prompt IDs, storyboard IDs, generated filenames, and narration ranges aligned.
 
 ### Assembly and review
@@ -98,6 +103,7 @@ Use stable filenames so the project can resume across hosts:
 - `characters/`
 - `IMAGE_PROMPTS.md`
 - `images/`
+- `images/GENERATION_LEDGER.md` when the Skill generates images
 - `review/`
 - `renders/`
 - `HANDOFF.md` when another host must continue
