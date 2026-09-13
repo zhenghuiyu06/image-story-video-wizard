@@ -59,6 +59,19 @@
 }
 ```
 
+For a confirmed City Archives project, persist the reusable production decisions rather than relying on chat history:
+
+```json
+"decisions": {
+  "production_profile": {"value": "city-archives-v1", "source": "user", "status": "已确认"},
+  "image_generation_mode": {"value": "assistant", "source": "user", "status": "已确认"},
+  "image_batch_size": {"value": 10, "source": "city-archives-v1", "status": "已确认"},
+  "image_batch_qc": {"value": "automatic", "source": "city-archives-v1", "status": "已确认"},
+  "critical_retry_limit": {"value": 1, "source": "city-archives-v1", "status": "已确认"},
+  "final_delivery": {"value": "master-only-downloads", "source": "city-archives-v1", "status": "已确认"}
+}
+```
+
 5. Artifact paths must be absolute inside `PROJECT_STATE.json`. Public deliverables must not expose private paths.
 6. Never store plaintext API keys, cookies, login URLs, redemption codes, or tokens.
 7. When returning to an earlier stage, do not delete downstream artifacts. Mark them in `artifacts` as `stale: true` until regenerated or re-confirmed.

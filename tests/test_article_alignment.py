@@ -16,6 +16,8 @@ OPENAI_YAML = ROOT / "agents" / "openai.yaml"
 WORKFLOW = ROOT / "references" / "workflow.md"
 HOST_ROUTING = ROOT / "references" / "host-routing.md"
 STATE_SCRIPT = ROOT / "scripts" / "project_state.py"
+BATCH_SCRIPT = ROOT / "scripts" / "image_batch_plan.py"
+CITY_PROFILE = ROOT / "references" / "city-archives-profile.md"
 
 STAGES = (
     "START",
@@ -55,6 +57,8 @@ class ArticleAlignmentTests(unittest.TestCase):
             "references/host-routing.md",
             "references/state-schema.md",
             "references/workflow.md",
+            "references/city-archives-profile.md",
+            "scripts/image_batch_plan.py",
             "scripts/project_state.py",
         )
         for relative in required:
@@ -129,6 +133,53 @@ class ArticleAlignmentTests(unittest.TestCase):
         self.assertIn("one prompt and one image per fresh conversation", self.workflow)
         self.assertIn("7–15 days", self.workflow)
         self.assertIn("three to five stable, accepted scripts", self.workflow)
+
+    def test_city_archives_profile_is_discoverable_and_bounded(self) -> None:
+        profile = CITY_PROFILE.read_text(encoding="utf-8")
+        self.assertIn("references/city-archives-profile.md", self.skill)
+        self.assertIn("city-archives-v1", self.skill)
+        self.assertIn("batches of ten", self.skill)
+        self.assertIn("one critical-error retry per image", self.workflow)
+        self.assertIn("欢迎来到今天的城事档案", profile)
+        self.assertIn("Do not ask for approval between production batches", profile)
+        self.assertIn("does not authorize publishing", profile)
+        self.assertIn("Do not generate a mobile-compatible derivative", profile)
+
+    def test_image_batch_plan_partitions_twenty_three_shots(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            storyboard = Path(temp_dir) / "STORYBOARD.csv"
+            rows = ["shot_id,audio_start,audio_end"]
+            rows.extend(f"S{index:03d},00:00.000,00:01.000" for index in range(1, 24))
+            storyboard.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(BATCH_SCRIPT), str(storyboard), "--size", "10"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            plan = json.loads(result.stdout)
+            self.assertEqual(23, plan["total_shots"])
+            self.assertEqual([10, 10, 3], [batch["count"] for batch in plan["batches"]])
+            flattened = [shot for batch in plan["batches"] for shot in batch["shot_ids"]]
+            self.assertEqual([f"S{index:03d}" for index in range(1, 24)], flattened)
+
+    def test_image_batch_plan_rejects_invalid_storyboards(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            missing_header = root / "missing.csv"
+            missing_header.write_text("scene\nA\n", encoding="utf-8")
+            duplicate = root / "duplicate.csv"
+            duplicate.write_text("shot_id\nS001\nS001\n", encoding="utf-8")
+            for storyboard in (missing_header, duplicate):
+                result = subprocess.run(
+                    [sys.executable, str(BATCH_SCRIPT), str(storyboard)],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(1, result.returncode)
+                self.assertIn("ERROR:", result.stderr)
 
     def test_state_cli_initializes_and_validates(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
